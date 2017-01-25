@@ -1,0 +1,41 @@
+---
+swagger: "2.0"
+info:
+  version: "2017-01-22T18:17:58Z"
+  title: "Lambda Proxy"
+schemes:
+- "https"
+paths:
+  /:
+    x-amazon-apigateway-any-method:
+      produces:
+      - "application/json"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${AWS_ACCOUNT_ID}:function:${stageVariables.lambda}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+  /{proxy+}:
+    x-amazon-apigateway-any-method:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "proxy"
+        in: "path"
+        required: true
+        type: "string"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:${AWS_ACCOUNT_ID}:function:${stageVariables.lambda}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
