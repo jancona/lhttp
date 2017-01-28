@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jancona/lambdaproxy/lhttp"
+	"github.com/jancona/lhttp"
 )
 
 type fooHandler struct{}

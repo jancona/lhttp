@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jancona/lambdaproxy/lhttp"
+	"github.com/jancona/lhttp"
 )
 
 func articlesCategoryHandler(w http.ResponseWriter, r *http.Request) {
