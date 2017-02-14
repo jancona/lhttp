@@ -201,6 +201,9 @@ func newHTTPRequest(lr *lambdaRequest, ctx *LambdaContext) *http.Request {
 	if err != nil {
 		log.Print("Error creating http.Request: ", err.Error())
 	}
+	for k, v := range lr.Headers {
+		hr.Header.Add(k, v)
+	}
 	hr.WithContext(context.WithValue(hr.Context(), &LambdaContextKey, ctx))
 	return hr
 }
