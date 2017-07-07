@@ -48,16 +48,16 @@ type LambdaContext struct {
 
 // lambdaRequest is the AWS proxy integration request
 type lambdaRequest struct {
-	Resource              string            `json:"resource"`
-	Path                  string            `json:"path"`
-	HTTPMethod            string            `json:"httpMethod"`
-	Headers               map[string]string `json:"headers"`
-	QueryStringParameters map[string]string `json:"queryStringParameters"`
-	PathParameters        map[string]string `json:"pathParameters"`
-	StageVariables        map[string]string `json:"stageVariables"`
-	RequestContext        requestContext    `json:"requestContext"`
-	Body                  string            `json:"body"`
-	IsBase64Encoded       bool              `json:"isBase64Encoded"`
+	Resource              string               `json:"resource"`
+	Path                  string               `json:"path"`
+	HTTPMethod            string               `json:"httpMethod"`
+	Headers               map[string]string    `json:"headers"`
+	QueryStringParameters map[string]string    `json:"queryStringParameters"`
+	PathParameters        map[string]string    `json:"pathParameters"`
+	StageVariables        map[string]string    `json:"stageVariables"`
+	RequestContext        LambdaRequestContext `json:"requestContext"`
+	Body                  string               `json:"body"`
+	IsBase64Encoded       bool                 `json:"isBase64Encoded"`
 }
 
 func (lr lambdaRequest) url() string {
@@ -84,12 +84,17 @@ func (lr lambdaRequest) url() string {
 
 type handler func(*LambdaContext, *lambdaRequest) (interface{}, error)
 
-type requestContext struct {
+type Authorizer struct {
+	PrincipalID string `json:"principalId"`
+	Claims      map[string]string
+}
+type LambdaRequestContext struct {
 	AccountID    string            `json:"accountId"`
 	ResourceID   string            `json:"resourceId"`
 	Stage        string            `json:"stage"`
 	RequestID    string            `json:"requestId"`
 	Identity     map[string]string `json:"identity"`
+	Authorizer   Authorizer        `json:"authorizer"`
 	ResourcePath string            `json:"resourcePath"`
 	HTTPMethod   string            `json:"httpMethod"`
 	APIID        string            `json:"apiId"`
@@ -133,6 +138,10 @@ func (k *contextKey) String() string { return "lhttp context value " + k.name }
 // AWS Lambda Context from the Request object. The associated value will be of
 // type LambdaContext
 var LambdaContextKey = contextKey{"lambda-context"}
+
+// LambdaRequestContextKey is a context key. It can be used by handlers to access the
+// AWS Lambda Request Context from the Request object.
+var LambdaRequestContextKey = contextKey{"lambda-request-context"}
 
 // DefaultServeMux is the default ServeMux used by Serve.
 var DefaultServeMux = &defaultServeMux
@@ -204,7 +213,8 @@ func newHTTPRequest(lr *lambdaRequest, ctx *LambdaContext) *http.Request {
 	for k, v := range lr.Headers {
 		hr.Header.Add(k, v)
 	}
-	hr.WithContext(context.WithValue(hr.Context(), &LambdaContextKey, ctx))
+	hr = hr.WithContext(context.WithValue(hr.Context(), &LambdaContextKey, ctx))
+	hr = hr.WithContext(context.WithValue(hr.Context(), &LambdaRequestContextKey, lr.RequestContext))
 	return hr
 }
 
